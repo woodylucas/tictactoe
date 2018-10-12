@@ -2,6 +2,7 @@
 var origBoard;
 const userPlayer = 'X';
 const computerPlayer = 'O';
+let isUserTurn = true;
 // array of winning combinations
 const winCombos = [
   [0, 1, 2],
@@ -24,21 +25,41 @@ function startGame() {
   for (var i = 0; i < cells.length; i++) {
     cells[i].innerText = '';
     cells[i].style.removeProperty('background-color');
-    cells[i].addEventListener('click', turnClick, false)
+    cells[i].addEventListener('click', handleClick, false)
   }
 }
-function turnClick(square) {
+function handleClick(square) {
+  // if user turn then proceed with rest of the code
+  // if its not the user turn then
+    //return true and stop execution of the rest of the function
+    // this prevents the user from going out of turn
+
+  if (!isUserTurn) return true;
+
   if (typeof origBoard[square.target.id] === 'number') {
-    turn(square.target.id, userPlayer)
-    if (!checkTie()) turn(bestSpot(), computerPlayer);
+    updateBoard(square.target.id, userPlayer);
+
+    window.setTimeout(function() {
+        if (!isTieGame()) updateBoard(bestBotMove(), computerPlayer);
+      }, 1000
+    )
   }
 
 }
 // to get user 'X' to appear on screen.
 //using innerText to post text on screen.
-function turn(squareId, player) {
+function updateBoard(squareId, player) {
   origBoard[squareId] = player;
+
+  // add x or o to the board
   document.getElementById(squareId).innerText = player;
+
+  if (player === "X") {
+    isUserTurn = false;
+  } else {
+    isUserTurn = true;
+  }
+
 //checking if a certain player has won
   let gameWon = checkWin(origBoard, player)
   if (gameWon) gameOver(gameWon)
@@ -61,7 +82,7 @@ function gameOver(gameWon) {
     document.getElementById(index).style.backgroundColor = gameWon.player == userPlayer ? "green" : "red";
   }
   for (var i = 0; i < cells.length; i++) {
-    cells[i].removeEventListener('click', turnClick, false);
+    cells[i].removeEventListener('click', handleClick, false);
    }
    declareWinner(gameWon.player == userPlayer ? "YAYYYY YOU WIN!!!" : "You Lose, try again");
 }
@@ -75,25 +96,26 @@ function emptySquares() {
   return origBoard.filter(s => typeof s == 'number');
 }
 
-function bestSpot() {
+function bestBotMove() {
   return minimax(origBoard, computerPlayer).index;
 }
 
-function checkTie() {
+function isTieGame() {
   if (emptySquares().length == 0) {
     for ( var i = 0; i < cells.length; i++) {
       cells[i].style.backgroundColor = "yellow";
-      cells[i].removeEventListener('click', turnClick, false);
+      cells[i].removeEventListener('click', handleClick, false);
     }
+
     declareWinner("Tie Game!")
-  return true;
+    return true;
   }
   return false;
 }
 
-//minimax algorithm
-
+//minimax algorithm to determine best move for the bot
 function minimax(newBoard, player) {
+
   var availSpots = emptySquares(newBoard);
   if (checkWin(newBoard, player)) {
     return {score: -10};
@@ -102,7 +124,9 @@ function minimax(newBoard, player) {
   } else if (availSpots.length === 0) {
     return {score: 0};
   }
+
   var moves =[];
+
   for (var i = 0; i < availSpots.length; i++) {
     var move = {};
     move.index = newBoard[availSpots[i]];
@@ -119,7 +143,9 @@ function minimax(newBoard, player) {
     newBoard[availSpots[i]] = move.index;
     moves.push(move);
   }
+
   var bestMove;
+
   if(player === computerPlayer) {
     var bestScore = -10000;
     for(var i = 0; i < moves.length; i++) {
