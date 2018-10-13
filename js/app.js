@@ -17,8 +17,9 @@ const winCombos = [
 // using the DOM
 const cells = document.querySelectorAll('.cell');
 startGame();
-
+//start of the game is presented right here
 function startGame() {
+  isUserTurn = true;
   document.querySelector(".endgame").style.display = "none"
   origBoard = Array.from(Array(9).keys());
   // to remove x, and o's from board. create a for loop
@@ -28,6 +29,7 @@ function startGame() {
     cells[i].addEventListener('click', handleClick, false)
   }
 }
+
 function handleClick(square) {
   // if user turn then proceed with rest of the code
   // if its not the user turn then
@@ -164,4 +166,5 @@ function minimax(newBoard, player) {
     }
   }
   return moves[bestMove];
+
 }
