@@ -3,6 +3,7 @@ var origBoard;
 const userPlayer = 'X';
 const computerPlayer = 'O';
 let isUserTurn = true;
+
 // array of winning combinations
 const winCombos = [
   [0, 1, 2],
@@ -31,21 +32,27 @@ function startGame() {
 }
 
 function handleClick(square) {
+
+
+
   // if user turn then proceed with rest of the code
   // if its not the user turn then
     //return true and stop execution of the rest of the function
     // this prevents the user from going out of turn
 
-  if (!isUserTurn) return true;
+  if (!isUserTurn)
+    return true;
 
   if (typeof origBoard[square.target.id] === 'number') {
     updateBoard(square.target.id, userPlayer);
 
-    window.setTimeout(function() {
-        if (!isTieGame()) updateBoard(bestBotMove(), computerPlayer);
-      }, 1000
-    )
+
   }
+  window.setTimeout(function() {
+      // if (!isTieGame()) updateBoard(bestBotMove(), computerPlayer);
+      if (!checkWin(origBoard, userPlayer) && !isTieGame()) updateBoard(bestBotMove(), computerPlayer);
+    }, 1000
+  )
 
 }
 // to get user 'X' to appear on screen.
@@ -66,9 +73,14 @@ function updateBoard(squareId, player) {
   let gameWon = checkWin(origBoard, player)
   if (gameWon) gameOver(gameWon)
 }
-
+//tenary operator
 function checkWin(board, player) {
-  let plays = board.reduce((a, e, i) => (e === player) ? a.concat(i) : a, []);
+  /*reduce method, this method goes through every element of the board array and do something,
+  and give back one single value. This is a fancy way to find all places on the board that has
+  been played in.
+*/
+  let plays = board.reduce((a, e, i) =>
+  (e === player) ? a.concat(i) : a, []);
   let gameWon = null;
   for (let [index, win] of winCombos.entries()) {
     if (win.every(elem => plays.indexOf(elem) > -1)) {
@@ -78,7 +90,8 @@ function checkWin(board, player) {
   }
   return gameWon;
 }
-// indicating who wins with a color.
+//game over function
+// indicating who wins with a color, doesn't allow user to click after game has been won
 function gameOver(gameWon) {
   for (let index of winCombos[gameWon.index]) {
     document.getElementById(index).style.backgroundColor = gameWon.player == userPlayer ? "green" : "red";
@@ -102,6 +115,7 @@ function bestBotMove() {
   return minimax(origBoard, computerPlayer).index;
 }
 
+// tie game function.
 function isTieGame() {
   if (emptySquares().length == 0) {
     for ( var i = 0; i < cells.length; i++) {
@@ -109,20 +123,19 @@ function isTieGame() {
       cells[i].removeEventListener('click', handleClick, false);
     }
 
-    declareWinner("Tie Game!")
-    return true;
+     declareWinner("Tie game");
+     return true;
   }
   return false;
 }
 
 //minimax algorithm to determine best move for the bot
 function minimax(newBoard, player) {
-
   var availSpots = emptySquares(newBoard);
   if (checkWin(newBoard, player)) {
     return {score: -10};
   } else if (checkWin(newBoard, computerPlayer)) {
-    return {score: 20};
+    return {score: 10};
   } else if (availSpots.length === 0) {
     return {score: 0};
   }
